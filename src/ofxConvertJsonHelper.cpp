@@ -5,7 +5,8 @@ using namespace ofx::convertjson;
 using namespace ofx::convertjson::helpers;
 using namespace std;
 
-Array Helper::dispatch(initializer_list<ConvFunc> proc) const
+template<typename ConcreteHelper>
+Array Helper<ConcreteHelper>::dispatch(initializer_list<ConvFunc> proc) const
 {
 	vector<ofJson> ret;
 	ret.reserve(proc.size());
@@ -14,6 +15,17 @@ Array Helper::dispatch(initializer_list<ConvFunc> proc) const
 	}
 	return Array(std::move(ret));
 }
+Object& Object::pick(const std::string &key, ConvFunc proc) {
+	auto &&data = ref();
+	auto it = data.find(key);
+	if(it == end(data)) {
+		ofLogWarning("ofxConvertJson") << "key not found: " << key;
+		return *this;
+	}
+	it.value() = proc(it.value());
+	return *this;
+}
+
 Array Object::toArray(const string &name_of_key) const
 {
 	vector<ofJson> ret;

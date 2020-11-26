@@ -28,18 +28,20 @@ protected:
 };
 
 class Array;
+
+template<typename ConcreteHelper>
 class Helper : public ValueOrRef<ofJson>
 {
 public:
 	using ValueOrRef::ValueOrRef;
 	
-	Helper apply(ConvFunc proc) {
+	ConcreteHelper& apply(ConvFunc proc) {
 		ref() = proc(value());
-		return ref();
+		return static_cast<ConcreteHelper&>(*this);
 	}
-	Helper copy(ofJson &dst) {
+	ConcreteHelper& copy(ofJson &dst) {
 		dst = value();
-		return ref();
+		return static_cast<ConcreteHelper&>(*this);
 	}
 	Array dispatch(std::initializer_list<ConvFunc> proc) const;
 	
@@ -47,17 +49,23 @@ public:
 	T castTo() { return T(ref()); }
 };
 
-class Object : public Helper
+class Value : public Helper<Value>
+{
+public:
+	using Helper::Helper;
+};
+
+class Object : public Helper<Object>
 {
 public:
 	using Helper::Helper;
 	
-	Object pick(const std::string, ConvFunc proc) {
-	}
+	Object& pick(const std::string &key, ConvFunc proc);
+	
 	Array toArray(const std::string &name_of_key) const;
 };
 
-class Array : public Helper
+class Array : public Helper<Array>
 {
 public:
 	using Helper::Helper;
