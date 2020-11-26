@@ -1,66 +1,62 @@
 #pragma once
 
 #include "ofJson.h"
+#include "ofxConvertJson.h"
 
 namespace ofx { namespace convertjson {
-template<typename Parent>
-class ContainerHelper;
 
-class Helper
+namespace helpers {
+
+template<typename T>
+class ValueOrRef
 {
 public:
-	Helper(ofJson &ref)
-	:ref_(ref)
-	{}
+	ValueOrRef(): ref_(value_) {}
+//	ValueOrRef(T value): value_(value), ref_(value_) {}
+	ValueOrRef(const T &value): value_(value), ref_(value_) {}
+	ValueOrRef(T &&value): value_(value), ref_(value_) {}
+	ValueOrRef(T &ref): ref_(ref) {}
+	
+	const T& value() const { return ref_; }
+	T& ref() { return ref_; }
+	operator T&() { return ref(); }
+	operator const T&() const { return value(); }
+protected:
+	T value_, &ref_;
+};
 
-	operator ofJson&() { return get(); }
-	ofJson& get() { return ref_; }
+class Array;
+class Helper : public ValueOrRef<ofJson>
+{
+public:
+	using ValueOrRef::ValueOrRef;
 	
 	template<typename ConvType, typename ...Args>
 	Helper& apply(Args &&...args) {
-		ref_ = ConvType(std::forward<Args...>(args...)).convert(get());
+		ref() = ConvType(std::forward<Args...>(args...)).convert(value());
 		return *this;
 	}
 	Helper& copy(ofJson &dst) {
-		dst = get();
+		dst = value();
 		return *this;
 	}
-	ContainerHelper<Helper> foreach();
-	
-protected:
-	ofJson &ref_;
+	Array dispatch(std::initializer_list<std::function<ofJson(const ofJson&)>> proc) const;
 };
 
-template<typename Parent>
-class ContainerHelper
+class Array : public Helper
 {
 public:
-	ContainerHelper(Parent &parent)
-	:parent_(parent)
-	{}
-	
-	template<typename ConvType, typename ...Args>
-	ContainerHelper<Parent>& apply(Args &&...args) {
-		parent_.template apply<ForEach<ConvType>>(std::forward<Args...>(args...));
-		return *this;
-	}
-
-	ofJson& get() { return parent_.get(); }
-	Parent& join() { return parent_; }
-	ContainerHelper<Parent>& copy(ofJson &dst) {
-		parent_.copy(dst);
-		return *this;
-	}
-
-	ContainerHelper<ContainerHelper<Parent>> foreach() {
-		return ContainerHelper<ContainerHelper<Parent>>(*this);
-	}
-protected:
-	Parent &parent_;
+	using Helper::Helper;
 };
 
-inline ContainerHelper<Helper> Helper::foreach() {
-	return ContainerHelper<Helper>(*this);
+Array Helper::dispatch(std::initializer_list<std::function<ofJson(const ofJson&)>> proc) const {
+	std::vector<ofJson> ret;
+	ret.reserve(proc.size());
+	for(auto &&conv : proc) {
+		ret.push_back(conv(value()));
+	}
+	return Array(ret);
 }
 
+}
 }}

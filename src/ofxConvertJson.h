@@ -84,11 +84,21 @@ public:
 			return ret;
 		};
 	}
+	CherryPick(const std::string &key)
+	:CherryPick([key](const std::string &k) {
+		return k==key;
+	}) {}
+	
 	CherryPick(const std::vector<std::string> &keys)
 	:CherryPick([keys](const std::string &key) {
 		using namespace std;
 		return find(begin(keys), end(keys), key) != end(keys);
 	}) {}
+};
+
+class Set : public Converter
+{
+public:
 };
 
 class Print : public Converter
@@ -104,34 +114,6 @@ public:
 
 /*
  * old things....
-
-class ForEach : public ofxConvertJson
-{
-public:
-	ForEach(const ofxConvertJson &conv)
-	:conv_(conv)
-	{}
-	
-	ofJson convert(const ofJson &src) const override {
-		assert(src.is_object() || src.is_array());
-		using namespace std;
-		ofJson ret;
-		if(src.is_object()) {
-			for(auto it = begin(src); it != end(src); ++it) {
-				ret[it.key()] = conv_.convert(it.value());
-			}
-		}
-		else if(src.is_array()) {
-			for(auto &j : src) {
-				ret.push_back(conv_.convert(j));
-			}
-		}
-		return ret;
-	}
-protected:
-	const ofxConvertJson &conv_;
-};
-
 
 class ModValueOfKey : public ofxConvertJson
 {

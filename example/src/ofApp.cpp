@@ -8,17 +8,26 @@ using namespace ofx::convertjson;
 void ofApp::setup(){
 	ofJson data = {
 		{"key1", {{"arr1", 1},{"arr2", 2}}},
-//		{"key2", {"arr3", 2}},
+		{"key2", {"arr3", 2}},
 	};
 	ofJson copy;
-	ofJson result = Helper(data)
-	.foreach()
+	ofJson result = helpers::Helper(data)
+	.apply<DownStair>("key1")
 	.copy(copy)
-	.apply<DownStair>("arr1")
+	.dispatch({
+		[](const ofJson &src) -> ofJson {
+			return helpers::Helper(src).apply<DownStair>("arr1");
+		},
+		[](const ofJson &src) -> ofJson {
+			return helpers::Helper(src).apply<CherryPick>("arr2");
+		},
+	})
+//	.apply<CherryPick>(std::vector<std::string>{"arr1"})
+//	.apply<DownStair>("arr1")
 	.apply<Print>(2)
-//	.apply<CherryPick>(std::vector<std::string>{"key3", "key2"})
-	.get();
+	;
 	std::cout << copy.dump(2) << std::endl;
+	std::cout << data.dump(2) << std::endl;
 	std::cout << result.dump(2) << std::endl;
 	//	data = Chain({DownStair("key1"), ModValueOfKey("data", 3.14)}).convert(data);
 }
