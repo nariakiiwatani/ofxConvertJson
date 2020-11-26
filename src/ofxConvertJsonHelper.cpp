@@ -15,14 +15,14 @@ Array Helper<ConcreteHelper>::dispatch(initializer_list<ConvFunc> proc) const
 	}
 	return Array(std::move(ret));
 }
-Object& Object::pick(const std::string &key, ConvFunc proc) {
-	auto &&data = ref();
-	auto it = data.find(key);
-	if(it == end(data)) {
-		ofLogWarning("ofxConvertJson") << "key not found: " << key;
-		return *this;
+Object& Object::pick(Picker picker, ConvFunc proc)
+{
+	auto &&src = ref();
+	for(auto it = begin(src); it != end(src); ++it) {
+		if(picker(it.key())) {
+			it.value() = proc(it.value());
+		}
 	}
-	it.value() = proc(it.value());
 	return *this;
 }
 
@@ -41,12 +41,21 @@ Array Object::toArray(const string &name_of_key) const
 	return Array(std::move(ret));
 }
 
+Object& Object::saveEach(NamerFunction namer, int indent)
+{
+	auto &&src = value();
+	for(auto it = begin(src); it != end(src); ++it) {
+		Helper(it.value()).save(namer(it.key(), it.value(), src), indent);
+	}
+	return *this;
+}
+
 Object Array::toObject(NamerFunction namer) const
 {
 	ofJson ret;
 	const auto &src = value();
 	for(size_t i = 0; i < src.size(); ++i) {
-		string name = namer(i);
+		string name = namer(i, src[i], src);
 		if(!name.empty()) {
 			ret[name] = src[i];
 		}
@@ -66,9 +75,18 @@ Object Array::mergeAsObject(MergeStrategy strategy, NamerFunction not_obj_namer)
 			}
 		}
 		else {
-			ret.insert(make_pair(not_obj_namer(i), item));
+			ret.insert(make_pair(not_obj_namer(i, item, src), item));
 		}
 	}
 	return Object(std::move(ret));
+}
+
+Array& Array::saveEach(NamerFunction namer, int indent)
+{
+	auto &&src = value();
+	for(size_t i = 0; i < src.size(); ++i) {
+		Helper(src[i]).save(namer(i, src[i], src), indent);
+	}
+	return *this;
 }
 

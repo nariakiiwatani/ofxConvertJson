@@ -13,20 +13,23 @@ void ofApp::setup(){
 	ofJson copy;
 	ofJson result = helpers::Value(data)
 	.castTo<helpers::Object>()
-	.apply(CherryPick{"key1"})
-	.copy(copy)
-	.pick("key1", [](const ofJson &src) -> ofJson {
-		return {{"new", 100}, {"element", 300}};
+	.pick({"key1"}, [](const ofJson &src) -> ofJson {
+		return helpers::Object(src)
+		.pick({"arr1"}, Set({"newvalue", 100}));
 	})
-//	.toObject()
-//	.apply<CherryPick>(std::vector<std::string>{"arr1"})
-//	.apply<DownStair>("arr1")
-//	.apply<Print>(2)
+	.pick({"key2"}, [](const ofJson &src) -> ofJson {
+		return helpers::Array(src)
+		.toObject();
+	})
+	.println(2)
+	.save("all.json", 2)
+	.saveEach("obj", 2)
+	.toArray("key")
+	.copy(copy)
+	.saveEach([copy](const std::size_t &index, const ofJson&, const ofJson&) {
+		return copy[index]["key"].get<string>()+".json";
+	}, 2)
 	;
-	std::cout << copy.dump(2) << std::endl;
-	std::cout << data.dump(2) << std::endl;
-	std::cout << result.dump(2) << std::endl;
-	//	data = Chain({DownStair("key1"), ModValueOfKey("data", 3.14)}).convert(data);
 }
 
 //--------------------------------------------------------------
