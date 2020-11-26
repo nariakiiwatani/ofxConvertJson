@@ -13,11 +13,11 @@ void ofApp::setup(){
 	ofJson copy;
 	ofJson result = helpers::Value(data)
 	.castTo<helpers::Object>()
-	.pick({"key1"}, [](const ofJson &src) -> ofJson {
+	.pick("key1", [](const ofJson &src) -> ofJson {
 		return helpers::Object(src)
-		.pick({"arr1"}, Set({"newvalue", 100}));
+		.pick("arr1", Set({"newvalue", 100}));
 	})
-	.pick({"key2"}, [](const ofJson &src) -> ofJson {
+	.pick("key2", [](const ofJson &src) -> ofJson {
 		return helpers::Array(src)
 		.toObject();
 	})

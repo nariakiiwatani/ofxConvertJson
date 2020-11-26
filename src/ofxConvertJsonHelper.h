@@ -78,6 +78,11 @@ public:
 	
 	using NamerFunction = std::function<std::string(const std::string &key, const ofJson &value, const ofJson &src)>;
 	
+	template<typename T>
+	Object& pick(T picker_info, ConvFunc proc) {
+		return pick(Picker(picker_info), proc);
+	}
+
 	Object& pick(Picker picker, ConvFunc proc);
 
 	Array toArray(const std::string &name_of_key) const;
