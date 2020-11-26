@@ -44,8 +44,8 @@ public:
 		dst = value();
 		return casted();
 	}
-	ConcreteHelper& save(const std::string &filepath, int indent=-1) {
-		ofFile(filepath, ofFile::WriteOnly) << ref().dump(indent);
+	ConcreteHelper& save(const std::string &basename, int indent=-1) {
+		ofFile(basename+".json", ofFile::WriteOnly) << ref().dump(indent);
 		return casted();
 	}
 	ConcreteHelper& print(int indent=-1, std::ostream &os=std::cout) {
@@ -90,7 +90,7 @@ public:
 	Object& saveEach(NamerFunction namer, int indent=-1);
 	Object& saveEach(const std::string &basename="", int indent=-1) {
 		return saveEach([basename](const std::string &key, const ofJson&, const ofJson&) {
-			return basename + key + ".json";
+			return basename + key;
 		}, indent);
 	}
 };
@@ -127,7 +127,7 @@ public:
 	Array& saveEach(const std::string &basename="", int indent=-1) {
 		int digit = getDigit();
 		return saveEach([digit, basename, indent](std::size_t index, const ofJson&, const ofJson&) {
-			return basename+ofToString(index, digit, indent) + ".json";
+			return basename+ofToString(index, digit, indent);
 		}, indent);
 	}
 

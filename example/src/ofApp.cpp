@@ -22,12 +22,12 @@ void ofApp::setup(){
 		.toObject();
 	})
 	.println(2)
-	.save("all.json", 2)
+	.save("all", 2)
 	.saveEach("obj", 2)
 	.toArray("key")
 	.copy(copy)
 	.saveEach([copy](const std::size_t &index, const ofJson&, const ofJson&) {
-		return copy[index]["key"].get<string>()+".json";
+		return copy[index]["key"].get<string>();
 	}, 2)
 	;
 }
