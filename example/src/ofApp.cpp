@@ -12,7 +12,7 @@ void ofApp::setup(){
 	};
 	ofJson copy;
 	ofJson result = helpers::Helper(data)
-	.apply<DownStair>("key1")
+//	.apply<DownStair>("key1")
 	.copy(copy)
 	.dispatch({
 		[](const ofJson &src) -> ofJson {
@@ -22,13 +22,14 @@ void ofApp::setup(){
 			return helpers::Helper(src).apply<CherryPick>("arr2");
 		},
 	})
+	.toObject()
 //	.apply<CherryPick>(std::vector<std::string>{"arr1"})
 //	.apply<DownStair>("arr1")
 	.apply<Print>(2)
 	;
-	std::cout << copy.dump(2) << std::endl;
-	std::cout << data.dump(2) << std::endl;
-	std::cout << result.dump(2) << std::endl;
+//	std::cout << copy.dump(2) << std::endl;
+//	std::cout << data.dump(2) << std::endl;
+//	std::cout << result.dump(2) << std::endl;
 	//	data = Chain({DownStair("key1"), ModValueOfKey("data", 3.14)}).convert(data);
 }
 

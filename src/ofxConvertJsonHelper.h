@@ -7,6 +7,8 @@ namespace ofx { namespace convertjson {
 
 namespace helpers {
 
+using ConvFunc = ofx::convertjson::ConvFunc;
+
 template<typename T>
 class ValueOrRef
 {
@@ -31,32 +33,64 @@ class Helper : public ValueOrRef<ofJson>
 public:
 	using ValueOrRef::ValueOrRef;
 	
-	template<typename ConvType, typename ...Args>
-	Helper& apply(Args &&...args) {
-		ref() = ConvType(std::forward<Args...>(args...)).convert(value());
-		return *this;
+	Helper apply(ConvFunc proc) {
+		ref() = proc(value());
+		return ref();
 	}
-	Helper& copy(ofJson &dst) {
+	Helper copy(ofJson &dst) {
 		dst = value();
-		return *this;
+		return ref();
 	}
-	Array dispatch(std::initializer_list<std::function<ofJson(const ofJson&)>> proc) const;
+	Array dispatch(std::initializer_list<ConvFunc> proc) const;
+	
+	template<typename T>
+	T castTo() { return T(ref()); }
+};
+
+class Object : public Helper
+{
+public:
+	using Helper::Helper;
+	
+	Object pick(const std::string, ConvFunc proc) {
+	}
+	Array toArray(const std::string &name_of_key) const;
 };
 
 class Array : public Helper
 {
 public:
 	using Helper::Helper;
-};
-
-Array Helper::dispatch(std::initializer_list<std::function<ofJson(const ofJson&)>> proc) const {
-	std::vector<ofJson> ret;
-	ret.reserve(proc.size());
-	for(auto &&conv : proc) {
-		ret.push_back(conv(value()));
+	
+	std::size_t size() const { return value().size(); }
+	
+	using NamerFunction = std::function<std::string(std::size_t index)>;
+	
+	Object toObject(NamerFunction namer) const;
+	Object toObject(const std::string &basename="item_") const {
+		int digit = getDigit();
+		return toObject([basename, digit](std::size_t index) {
+			return basename + ofToString(index, digit, '0');
+		});
 	}
-	return Array(ret);
-}
-
+	enum MergeStrategy {
+		KEEP_FIRST,
+		KEEP_LAST,
+	};
+	Object mergeAsObject(MergeStrategy strategy, NamerFunction not_obj_namer) const;
+	Object mergeAsObject(MergeStrategy strategy, const std::string &not_obj_basename="item_") const {
+	   int digit = getDigit();
+	   return mergeAsObject(strategy, [not_obj_basename, digit](std::size_t index) {
+		   return not_obj_basename + ofToString(index, digit, '0');
+	   });
+	}
+	
+private:
+	std::size_t getDigit() const {
+		int digit = 0;
+		while(pow(10, ++digit) <= size()) {}
+		return digit;
+	}
+};
 }
 }}

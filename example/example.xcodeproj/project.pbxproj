@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		813C0E06256F8FE000483C13 /* ofxConvertJsonHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 813C0E05256F8FE000483C13 /* ofxConvertJsonHelper.cpp */; };
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
 /* End PBXBuildFile section */
@@ -26,6 +27,7 @@
 /* Begin PBXFileReference section */
 		57EE395B17A9B235977B356D /* ofxConvertJson.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ofxConvertJson.h; path = ../../../addons/ofxConvertJson/src/ofxConvertJson.h; sourceTree = SOURCE_ROOT; };
 		813C0E03256DE1FE00483C13 /* ofxConvertJsonHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofxConvertJsonHelper.h; path = ../src/ofxConvertJsonHelper.h; sourceTree = "<group>"; };
+		813C0E05256F8FE000483C13 /* ofxConvertJsonHelper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ofxConvertJsonHelper.cpp; path = ../src/ofxConvertJsonHelper.cpp; sourceTree = "<group>"; };
 		E42962AC2163EDD300A6A9E2 /* ofCamera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ofCamera.cpp; path = ../../../libs/openFrameworks/3d/ofCamera.cpp; sourceTree = SOURCE_ROOT; };
 		E42962AD2163EDD300A6A9E2 /* ofMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofMesh.h; path = ../../../libs/openFrameworks/3d/ofMesh.h; sourceTree = SOURCE_ROOT; };
 		E42962AE2163EDD300A6A9E2 /* ofNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofNode.h; path = ../../../libs/openFrameworks/3d/ofNode.h; sourceTree = SOURCE_ROOT; };
@@ -233,6 +235,7 @@
 			children = (
 				57EE395B17A9B235977B356D /* ofxConvertJson.h */,
 				813C0E03256DE1FE00483C13 /* ofxConvertJsonHelper.h */,
+				813C0E05256F8FE000483C13 /* ofxConvertJsonHelper.cpp */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -655,6 +658,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				813C0E06256F8FE000483C13 /* ofxConvertJsonHelper.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
 			);
