@@ -13,6 +13,11 @@ using NoMod = std::function<void(const ofJson&)>;
 
 using ConvFunc = Mod; // deprecated
 
+template<typename Ret>
+using ObjItemFunc = std::function<Ret(const std::string &key, const ofJson &item, const ofJson &obj)>;
+template<typename Ret>
+using ArrayItemFunc = std::function<Ret(std::size_t index, const ofJson &item, const ofJson &obj)>;
+
 class Picker
 {
 public:
@@ -82,8 +87,7 @@ static void Save(const ofJson &src, const std::string &basename, int indent=-1) 
 	ofFile(basename+".json", ofFile::WriteOnly) << src.dump(indent);
 }
 
-using ObjNamer = std::function<std::string(const std::string &key, const ofJson &value, const ofJson &src)>;
-
+using ObjNamer = ObjItemFunc<std::string>;
 static void SaveObjEach(const ofJson &src, ObjNamer namer, int indent=-1) {
 	using namespace std;
 	for(auto it = begin(src); it != end(src); ++it) {
@@ -95,8 +99,16 @@ static void SaveObjEach(const ofJson &src, const std::string &basename="", int i
 		return basename + key;
 	}, indent);
 }
+static ofJson ObjForEach(const ofJson &src, ObjItemFunc<ofJson> proc) {
+	using namespace std;
+	ofJson ret;
+	for(auto it = begin(src); it != end(src); ++it) {
+		ret.push_back(proc(it.key(), it.value(), src));
+	}
+	return ret;
+}
 
-using ArrayNamer = std::function<std::string(std::size_t index, const ofJson &value, const ofJson &src)>;
+using ArrayNamer = ArrayItemFunc<std::string>;
 namespace {
 std::size_t getDigit(std::size_t size) {
 	int digit = 0;
@@ -107,7 +119,7 @@ std::size_t getDigit(std::size_t size) {
 static void SaveArrayEach(const ofJson &src, ArrayNamer namer, int indent=-1) {
 	using namespace std;
 	for(size_t i = 0; i < src.size(); ++i) {
-		Save(src, namer(i, src[i], src), indent);
+		Save(src[i], namer(i, src[i], src), indent);
 	}
 }
 static void SaveArrayEach(const ofJson &src, const std::string &basename="", int indent=-1) {

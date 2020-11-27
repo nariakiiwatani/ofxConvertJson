@@ -162,6 +162,7 @@ static std::function<Effector<Input>(Args...)> EffectCast(void(*proc)(const ofJs
 }
 
 static auto ToArray = ConvCast<Object, Array>(::ofx::convertjson::conv::ObjToArray);
+static auto ObjForEach = ConvCast<Json, Array>(::ofx::convertjson::conv::ObjForEach);
 
 static auto PrintFunc = EffectCast<Json>(::ofx::convertjson::conv::Print);
 static auto Print(int indent=-1)
