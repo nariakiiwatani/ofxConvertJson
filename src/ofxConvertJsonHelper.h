@@ -6,6 +6,8 @@
 namespace ofx { namespace convertjson {
 
 namespace helpers {
+template<typename Input, typename Output=Input>
+using Modifier = std::function<Output(const Input&)>;
 
 using ConvFunc = ofx::convertjson::ConvFunc;
 using Picker = ofx::convertjson::Picker;
@@ -36,6 +38,11 @@ class Helper : public ValueOrRef<ofJson>
 public:
 	using ValueOrRef::ValueOrRef;
 	
+	template<typename Output>
+	Output mod(Modifier<ConcreteHelper, Output> modifier) {
+		return modifier(casted());
+	}
+
 	ConcreteHelper& apply(ConvFunc proc) {
 		ref() = proc(value());
 		return casted();
@@ -69,6 +76,8 @@ class Value : public Helper<Value>
 {
 public:
 	using Helper::Helper;
+	
+	
 };
 
 class Object : public Helper<Object>
@@ -138,5 +147,24 @@ private:
 		return digit;
 	}
 };
+
+}
+}}
+
+
+namespace ofx { namespace convertjson {
+namespace helpers {
+
+template<typename Input, typename Output, typename ...Args>
+static std::function<Modifier<Input, Output>(Args...)> ModCast(ConvFunc (*makeConv)(Args...)) {
+	return [makeConv](Args &&...args) {
+		ConvFunc proc = makeConv(std::forward<Args...>(args...));
+		return [proc](const Input &input) -> Output {
+			return proc(input.value());
+		};
+	};
+}
+
+static auto ToArray = ModCast<Object, Array>(::ofx::convertjson::ToArray);
 }
 }}

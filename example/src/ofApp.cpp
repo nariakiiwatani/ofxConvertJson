@@ -10,6 +10,10 @@ void ofApp::setup(){
 		{"key1", {{"arr1", 1},{"arr2", 2}}},
 		{"key2", {"arr3", 2}},
 	};
+	
+	// Object& pick(Picker picker, ConvFunc proc);
+
+
 	ofJson result = helpers::Value(data)
 	.castTo<helpers::Object>()
 	.pick("key1", [](const ofJson &src) -> ofJson {
@@ -23,7 +27,8 @@ void ofApp::setup(){
 	.println(2)
 	.save("all", 2)
 	.saveEach("obj_", 2)
-	.toArray("key")
+//	.toArray("key")
+	.mod(helpers::ToArray("key"))
 	.saveEach([](const std::size_t &index, const ofJson &item, const ofJson &src) {
 		return item["key"].get<string>();
 	}, 2)

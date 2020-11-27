@@ -49,4 +49,21 @@ static ConvFunc Set(const ofJson &new_value) {
 	};
 }
 
+static ConvFunc ToArray(const std::string &name_of_key) {
+	using namespace std;
+	return [name_of_key](const ofJson &src) -> ofJson {
+		vector<ofJson> ret;
+		ret.reserve(src.size());
+		for(auto it = begin(src); it != end(src); ++it) {
+			ofJson elem = it.value();
+			if(!name_of_key.empty()) {
+				elem[name_of_key] = it.key();
+			}
+			ret.push_back(elem);
+		}
+		return std::move(ret);
+	};
+}
+
+
 }}
