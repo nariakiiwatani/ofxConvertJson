@@ -172,28 +172,26 @@ private:
 namespace ofx { namespace convertjson {
 namespace helpers {
 
-template<typename Input, typename Output, typename ...Args>
-static std::function<Modifier<Input, Output>(Args...)> Mod(ConvFunc (*makeConv)(Args...)) {
-	return [makeConv](Args &&...args) {
-		ConvFunc proc = makeConv(std::forward<Args>(args)...);
-		return [proc](const Input &input) -> Output {
-			return proc(input.value());
+template<typename Input, typename Output, typename Ret, typename ...Args>
+static std::function<Modifier<Input, Output>(Args...)> ModCast(Ret (*proc)(const ofJson&, Args...)) {
+	return [proc](Args &&...args) {
+		return [proc,&args...](const Input &input) -> Output {
+			return proc(input.value(), std::forward<Args>(args)...);
 		};
 	};
 }
 
-template<typename Input, typename ...Args>
-static std::function<Viewer<Input>(Args...)> NoMod(NoModFunc (*makeConv)(Args...)) {
-	return [makeConv](Args &&...args) {
-		NoModFunc proc = makeConv(std::forward<Args>(args)...);
-		return [proc](const Input &input) {
-			proc(input.value());
+template<typename Input, typename Ret, typename ...Args>
+static std::function<Viewer<Input>(Args...)> ViewCast(Ret (*proc)(const ofJson&, Args...)) {
+	return [proc](Args &&...args) {
+		return [proc,&args...](const Input &input) {
+			proc(input.value(), std::forward<Args>(args)...);
 		};
 	};
 }
 
-static auto ToArray = Mod<Object, Array>(::ofx::convertjson::ToArray);
-static auto PrintFunc = NoMod<Any>(::ofx::convertjson::Print);
+static auto ToArray = ModCast<Object, Array>(::ofx::convertjson::ToArray);
+static auto PrintFunc = ViewCast<Any>(::ofx::convertjson::Print);
 static auto Print(int indent=-1, std::ostream &os=std::cout) -> decltype(PrintFunc(indent, os)) {
 	return PrintFunc(indent, os);
 }

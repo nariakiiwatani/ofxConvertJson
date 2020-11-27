@@ -54,26 +54,22 @@ static Mod Set(const ofJson &new_value) {
 	};
 }
 
-static Mod ToArray(const std::string &name_of_key) {
+static ofJson ToArray(const ofJson &src, const std::string &name_of_key) {
 	using namespace std;
-	return [name_of_key](const ofJson &src) -> ofJson {
-		vector<ofJson> ret;
-		ret.reserve(src.size());
-		for(auto it = begin(src); it != end(src); ++it) {
-			ofJson elem = it.value();
-			if(!name_of_key.empty()) {
-				elem[name_of_key] = it.key();
-			}
-			ret.push_back(elem);
+	vector<ofJson> ret;
+	ret.reserve(src.size());
+	for(auto it = begin(src); it != end(src); ++it) {
+		ofJson elem = it.value();
+		if(!name_of_key.empty()) {
+			elem[name_of_key] = it.key();
 		}
-		return std::move(ret);
-	};
+		ret.push_back(elem);
+	}
+	return std::move(ret);
 }
 
-static NoMod Print(int indent=-1, std::ostream &os=std::cout) {
-	return [indent, &os](const ofJson &src) {
-		os << src.dump(indent);
-	};
+static void Print(const ofJson &src, int indent=-1, std::ostream &os=std::cout) {
+	os << src.dump(indent);
 }
 
 }}
