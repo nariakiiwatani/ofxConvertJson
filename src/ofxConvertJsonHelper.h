@@ -183,6 +183,8 @@ static auto Println(int indent=-1)
 	return PrintlnFunc(indent);
 }
 
+static auto Set = EffectCast<Any>(::ofx::convertjson::conv::Set);
+
 static auto Copy = EffectCast<Any>(::ofx::convertjson::conv::Copy);
 
 static auto SaveFunc = ViewCast<Any>(::ofx::convertjson::conv::Save);
