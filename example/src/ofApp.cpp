@@ -14,21 +14,22 @@ void ofApp::setup(){
 	
 	ofJson copy;
 	ofJson result = Object(data)
+	.convert(SetObj(data))
 	.pick("key1", [](const ofJson &src) -> ofJson {
-		return Object(src)
-		.pick("arr1", conv::Set({"newvalue", 100}));
+		return Object(src);
+//		.pick("arr1", conv::Set({"newvalue", 100}));
 	})
 	.pick("key2", [](const ofJson &src) -> ofJson {
 		return Array(src)
 		.toObject();
 	})
-	.view(Print(2))
-	.view(Save("all.json", 2))
-	.view(SaveObjEach("obj_", 2))
-	.mod(ToArray("key"))
+	.effect(Print(2))
+	.effect(Save("all.json", 2))
+	.effect(SaveObjEach("obj_", 2))
+	.convert(ToArray("key"))
 	.effect(Copy(copy))
-	.view(Print(2))
-	.view(SaveArrayEach([](const std::size_t &index, const ofJson &item, const ofJson &src) {
+	.effect(Print(2))
+	.effect(SaveArrayEach([](const std::size_t &index, const ofJson &item, const ofJson &src) {
 		return item["key"].get<string>();
 	}, 2))
 	;

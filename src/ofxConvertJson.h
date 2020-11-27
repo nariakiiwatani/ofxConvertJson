@@ -49,10 +49,8 @@ static Mod CherryPick(Picker pick) {
 	};
 }
 
-static Mod Set(const ofJson &new_value) {
-	return [new_value](const ofJson &src) {
-		return new_value;
-	};
+static ofJson Set(const ofJson &src, const ofJson &new_value) {
+	return new_value;
 }
 
 static ofJson ObjToArray(const ofJson &src, const std::string &name_of_key) {
