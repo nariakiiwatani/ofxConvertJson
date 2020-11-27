@@ -5,8 +5,8 @@ using namespace ofx::convertjson;
 using namespace ofx::convertjson::helpers;
 using namespace std;
 
-template<typename ConcreteHelper>
-Array Helper<ConcreteHelper>::dispatch(initializer_list<ConvFunc> proc) const
+template<typename ConcreteType>
+Array Any<ConcreteType>::dispatch(initializer_list<ConvFunc> proc) const
 {
 	vector<ofJson> ret;
 	ret.reserve(proc.size());

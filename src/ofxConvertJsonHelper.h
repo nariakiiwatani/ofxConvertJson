@@ -35,7 +35,7 @@ protected:
 	T value_, &ref_;
 };
 
-class Any : public ValueOrRef<ofJson>
+class Json : public ValueOrRef<ofJson>
 {
 public:
 	using ValueOrRef::ValueOrRef;
@@ -44,25 +44,25 @@ public:
 
 class Array;
 
-template<typename ConcreteHelper>
-class Helper : public Any
+template<typename ConcreteType>
+class Any : public Json
 {
 public:
-	using Any::Any;
+	using Json::Json;
 	
 	template<typename Output>
-	Output mod(Modifier<ConcreteHelper, Output> modifier) {
+	Output mod(Modifier<ConcreteType, Output> modifier) {
 		return modifier(casted());
 	}
 	
 	template<typename Input>
-	ConcreteHelper view(Viewer<Input> viewer) const {
+	ConcreteType view(Viewer<Input> viewer) const {
  		viewer(casted());
 		return casted();
 	}
 	
 	template<typename Input>
-	ConcreteHelper effect(Effect<Input> effect) const {
+	ConcreteType effect(Effect<Input> effect) const {
  		effect(casted());
 		return casted();
 	}
@@ -72,22 +72,22 @@ public:
 	template<typename T>
 	T castTo() { return T(ref()); }
 private:
-	ConcreteHelper& casted() { return static_cast<ConcreteHelper&>(*this); }
-	const ConcreteHelper& casted() const { return static_cast<const ConcreteHelper&>(*this); }
+	ConcreteType& casted() { return static_cast<ConcreteType&>(*this); }
+	const ConcreteType& casted() const { return static_cast<const ConcreteType&>(*this); }
 };
 
-class Value : public Helper<Value>
+class Value : public Any<Value>
 {
 public:
-	using Helper::Helper;
+	using Any::Any;
 	
 	
 };
 
-class Object : public Helper<Object>
+class Object : public Any<Object>
 {
 public:
-	using Helper::Helper;
+	using Any::Any;
 	
 	using NamerFunction = std::function<std::string(const std::string &key, const ofJson &value, const ofJson &src)>;
 	
@@ -99,10 +99,10 @@ public:
 	Object& pick(Picker picker, ConvFunc proc);
 };
 
-class Array : public Helper<Array>
+class Array : public Any<Array>
 {
 public:
-	using Helper::Helper;
+	using Any::Any;
 	
 	std::size_t size() const { return value().size(); }
 	
@@ -171,23 +171,23 @@ static std::function<Viewer<Input>(Args...)> EffectCast(Ret (*proc)(const ofJson
 
 static auto ToArray = ModCast<Object, Array>(::ofx::convertjson::conv::ObjToArray);
 
-static auto PrintFunc = ViewCast<Any>(::ofx::convertjson::conv::Print);
+static auto PrintFunc = ViewCast<Json>(::ofx::convertjson::conv::Print);
 static auto Print(int indent=-1)
 -> decltype(PrintFunc(indent)) {
 	return PrintFunc(indent);
 }
 
-static auto PrintlnFunc = ViewCast<Any>(::ofx::convertjson::conv::Println);
+static auto PrintlnFunc = ViewCast<Json>(::ofx::convertjson::conv::Println);
 static auto Println(int indent=-1)
 -> decltype(PrintlnFunc(indent)) {
 	return PrintlnFunc(indent);
 }
 
-static auto Set = EffectCast<Any>(::ofx::convertjson::conv::Set);
+static auto Set = EffectCast<Json>(::ofx::convertjson::conv::Set);
 
-static auto Copy = EffectCast<Any>(::ofx::convertjson::conv::Copy);
+static auto Copy = EffectCast<Json>(::ofx::convertjson::conv::Copy);
 
-static auto SaveFunc = ViewCast<Any>(::ofx::convertjson::conv::Save);
+static auto SaveFunc = ViewCast<Json>(::ofx::convertjson::conv::Save);
 static auto Save(const std::string &filename, int indent=-1)
 -> decltype(SaveFunc(filename, indent)) {
 	return SaveFunc(filename, indent);
