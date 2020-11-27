@@ -5,8 +5,13 @@
 
 namespace ofx { namespace convertjson {
 
-using ConvFunc = std::function<ofJson(const ofJson&)>;
 using PickerFunc = std::function<bool(const std::string&)>;
+
+using Mod = std::function<ofJson(const ofJson&)>;
+using NoMod = std::function<void(const ofJson&)>;
+
+using ConvFunc = Mod; // deprecated
+
 class Picker
 {
 public:
@@ -29,7 +34,7 @@ private:
 	PickerFunc func_;
 }; 
 
-static ConvFunc CherryPick(Picker pick) {
+static Mod CherryPick(Picker pick) {
 	return [pick](const ofJson &src) {
 		assert(src.is_object());
 		using namespace std;
@@ -43,13 +48,13 @@ static ConvFunc CherryPick(Picker pick) {
 	};
 }
 
-static ConvFunc Set(const ofJson &new_value) {
+static Mod Set(const ofJson &new_value) {
 	return [new_value](const ofJson &src) {
 		return new_value;
 	};
 }
 
-static ConvFunc ToArray(const std::string &name_of_key) {
+static Mod ToArray(const std::string &name_of_key) {
 	using namespace std;
 	return [name_of_key](const ofJson &src) -> ofJson {
 		vector<ofJson> ret;
@@ -65,5 +70,10 @@ static ConvFunc ToArray(const std::string &name_of_key) {
 	};
 }
 
+static NoMod Print(int indent=-1, std::ostream &os=std::cout) {
+	return [indent, &os](const ofJson &src) {
+		os << src.dump(indent);
+	};
+}
 
 }}

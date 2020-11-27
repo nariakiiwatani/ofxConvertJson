@@ -8,8 +8,11 @@ namespace ofx { namespace convertjson {
 namespace helpers {
 template<typename Input, typename Output=Input>
 using Modifier = std::function<Output(const Input&)>;
+template<typename Input>
+using Viewer = std::function<void(const Input&)>;
 
 using ConvFunc = ofx::convertjson::ConvFunc;
+using NoModFunc = ofx::convertjson::NoMod;
 using Picker = ofx::convertjson::Picker;
 
 template<typename T>
@@ -30,19 +33,32 @@ protected:
 	T value_, &ref_;
 };
 
-class Array;
-
-template<typename ConcreteHelper>
-class Helper : public ValueOrRef<ofJson>
+class Any : public ValueOrRef<ofJson>
 {
 public:
 	using ValueOrRef::ValueOrRef;
+};
+
+
+class Array;
+
+template<typename ConcreteHelper>
+class Helper : public Any
+{
+public:
+	using Any::Any;
 	
 	template<typename Output>
 	Output mod(Modifier<ConcreteHelper, Output> modifier) {
 		return modifier(casted());
 	}
-
+	
+	template<typename Input>
+	ConcreteHelper view(Viewer<Input> viewer) const {
+		viewer(casted());
+		return casted();
+	}
+	
 	ConcreteHelper& apply(ConvFunc proc) {
 		ref() = proc(value());
 		return casted();
@@ -70,6 +86,7 @@ public:
 	T castTo() { return T(ref()); }
 private:
 	ConcreteHelper& casted() { return static_cast<ConcreteHelper&>(*this); }
+	const ConcreteHelper& casted() const { return static_cast<const ConcreteHelper&>(*this); }
 };
 
 class Value : public Helper<Value>
@@ -156,15 +173,29 @@ namespace ofx { namespace convertjson {
 namespace helpers {
 
 template<typename Input, typename Output, typename ...Args>
-static std::function<Modifier<Input, Output>(Args...)> ModCast(ConvFunc (*makeConv)(Args...)) {
+static std::function<Modifier<Input, Output>(Args...)> Mod(ConvFunc (*makeConv)(Args...)) {
 	return [makeConv](Args &&...args) {
-		ConvFunc proc = makeConv(std::forward<Args...>(args...));
+		ConvFunc proc = makeConv(std::forward<Args>(args)...);
 		return [proc](const Input &input) -> Output {
 			return proc(input.value());
 		};
 	};
 }
 
-static auto ToArray = ModCast<Object, Array>(::ofx::convertjson::ToArray);
+template<typename Input, typename ...Args>
+static std::function<Viewer<Input>(Args...)> NoMod(NoModFunc (*makeConv)(Args...)) {
+	return [makeConv](Args &&...args) {
+		NoModFunc proc = makeConv(std::forward<Args>(args)...);
+		return [proc](const Input &input) {
+			proc(input.value());
+		};
+	};
+}
+
+static auto ToArray = Mod<Object, Array>(::ofx::convertjson::ToArray);
+static auto PrintFunc = NoMod<Any>(::ofx::convertjson::Print);
+static auto Print(int indent=-1, std::ostream &os=std::cout) -> decltype(PrintFunc(indent, os)) {
+	return PrintFunc(indent, os);
+}
 }
 }}
