@@ -3,6 +3,7 @@
 #include "ofxConvertJsonHelper.h"
 
 using namespace ofx::convertjson;
+using namespace ofx::convertjson::helpers;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -11,25 +12,25 @@ void ofApp::setup(){
 		{"key2", {"arr3", 2}},
 	};
 	
-	ofJson result = helpers::Value(data)
-	.castTo<helpers::Object>()
+	ofJson copy;
+	ofJson result = Object(data)
 	.pick("key1", [](const ofJson &src) -> ofJson {
-		return helpers::Object(src)
-		.pick("arr1", Set({"newvalue", 100}));
+		return Object(src)
+		.pick("arr1", conv::Set({"newvalue", 100}));
 	})
 	.pick("key2", [](const ofJson &src) -> ofJson {
-		return helpers::Array(src)
+		return Array(src)
 		.toObject();
 	})
-	.view(helpers::Print(2))
-	.save("all", 2)
-	.saveEach("obj_", 2)
-//	.toArray("key")
-	.mod(helpers::ToArray("key"))
-	.view(helpers::Print(2))
-	.saveEach([](const std::size_t &index, const ofJson &item, const ofJson &src) {
+	.view(Print(2))
+	.view(Save("all.json", 2))
+	.view(SaveObjEach("obj_", 2))
+	.mod(ToArray("key"))
+	.effect(Copy(copy))
+	.view(Print(2))
+	.view(SaveArrayEach([](const std::size_t &index, const ofJson &item, const ofJson &src) {
 		return item["key"].get<string>();
-	}, 2)
+	}, 2))
 	;
 }
 

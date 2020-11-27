@@ -26,30 +26,6 @@ Object& Object::pick(Picker picker, ConvFunc proc)
 	return *this;
 }
 
-Array Object::toArray(const string &name_of_key) const
-{
-	vector<ofJson> ret;
-	const auto &src = value();
-	ret.reserve(src.size());
-	for(auto it = begin(src); it != end(src); ++it) {
-		ofJson elem = it.value();
-		if(!name_of_key.empty()) {
-			elem[name_of_key] = it.key();
-		}
-		ret.push_back(elem);
-	}
-	return Array(std::move(ret));
-}
-
-Object& Object::saveEach(NamerFunction namer, int indent)
-{
-	auto &&src = value();
-	for(auto it = begin(src); it != end(src); ++it) {
-		Helper(it.value()).save(namer(it.key(), it.value(), src), indent);
-	}
-	return *this;
-}
-
 Object Array::toObject(NamerFunction namer) const
 {
 	ofJson ret;
@@ -80,14 +56,4 @@ Object Array::mergeAsObject(MergeStrategy strategy, NamerFunction not_obj_namer)
 	}
 	return Object(std::move(ret));
 }
-
-Array& Array::saveEach(NamerFunction namer, int indent)
-{
-	auto &&src = value();
-	for(size_t i = 0; i < src.size(); ++i) {
-		Helper(src[i]).save(namer(i, src[i], src), indent);
-	}
-	return *this;
-}
-
 

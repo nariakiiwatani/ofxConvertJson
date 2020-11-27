@@ -10,10 +10,12 @@ template<typename Input, typename Output=Input>
 using Modifier = std::function<Output(const Input&)>;
 template<typename Input>
 using Viewer = std::function<void(const Input&)>;
+template<typename Input>
+using Effect = std::function<void(const Input&)>;
 
-using ConvFunc = ofx::convertjson::ConvFunc;
-using NoModFunc = ofx::convertjson::NoMod;
-using Picker = ofx::convertjson::Picker;
+using ConvFunc = ofx::convertjson::conv::ConvFunc;
+using NoModFunc = ofx::convertjson::conv::NoMod;
+using Picker = ofx::convertjson::conv::Picker;
 
 template<typename T>
 class ValueOrRef
@@ -55,31 +57,16 @@ public:
 	
 	template<typename Input>
 	ConcreteHelper view(Viewer<Input> viewer) const {
-		viewer(casted());
+ 		viewer(casted());
 		return casted();
 	}
 	
-	ConcreteHelper& apply(ConvFunc proc) {
-		ref() = proc(value());
+	template<typename Input>
+	ConcreteHelper effect(Effect<Input> effect) const {
+ 		effect(casted());
 		return casted();
 	}
-	ConcreteHelper& copy(ofJson &dst) {
-		dst = value();
-		return casted();
-	}
-	ConcreteHelper& save(const std::string &basename, int indent=-1) {
-		ofFile(basename+".json", ofFile::WriteOnly) << ref().dump(indent);
-		return casted();
-	}
-	ConcreteHelper& print(int indent=-1, std::ostream &os=std::cout) {
-		os << ref().dump(indent);
-		return casted();
-	}
-	ConcreteHelper& println(int indent=-1, std::ostream &os=std::cout) {
-		print(indent, os);
-		os << std::endl;
-		return casted();
-	}
+	
 	Array dispatch(std::initializer_list<ConvFunc> proc) const;
 	
 	template<typename T>
@@ -110,15 +97,6 @@ public:
 	}
 
 	Object& pick(Picker picker, ConvFunc proc);
-
-	Array toArray(const std::string &name_of_key) const;
-
-	Object& saveEach(NamerFunction namer, int indent=-1);
-	Object& saveEach(const std::string &basename="", int indent=-1) {
-		return saveEach([basename](const std::string &key, const ofJson&, const ofJson&) {
-			return basename + key;
-		}, indent);
-	}
 };
 
 class Array : public Helper<Array>
@@ -149,14 +127,6 @@ public:
 	   });
 	}
 	
-	Array& saveEach(NamerFunction namer, int indent=-1);
-	Array& saveEach(const std::string &basename="", int indent=-1) {
-		int digit = getDigit();
-		return saveEach([digit, basename, indent](std::size_t index, const ofJson&, const ofJson&) {
-			return basename+ofToString(index, digit, indent);
-		}, indent);
-	}
-
 private:
 	std::size_t getDigit() const {
 		int digit = 0;
@@ -175,8 +145,8 @@ namespace helpers {
 template<typename Input, typename Output, typename Ret, typename ...Args>
 static std::function<Modifier<Input, Output>(Args...)> ModCast(Ret (*proc)(const ofJson&, Args...)) {
 	return [proc](Args &&...args) {
-		return [proc,&args...](const Input &input) -> Output {
-			return proc(input.value(), std::forward<Args>(args)...);
+		return [=](const Input &input) -> Output {
+			return proc(input.value(), std::move(args)...);
 		};
 	};
 }
@@ -184,16 +154,64 @@ static std::function<Modifier<Input, Output>(Args...)> ModCast(Ret (*proc)(const
 template<typename Input, typename Ret, typename ...Args>
 static std::function<Viewer<Input>(Args...)> ViewCast(Ret (*proc)(const ofJson&, Args...)) {
 	return [proc](Args &&...args) {
-		return [proc,&args...](const Input &input) {
+		return [=](const Input &input) {
+			proc(input.value(), std::move(args)...);
+		};
+	};
+}
+
+template<typename Input, typename Ret, typename ...Args>
+static std::function<Viewer<Input>(Args...)> EffectCast(Ret (*proc)(const ofJson&, Args...)) {
+	return [proc](Args &&...args) {
+		return [&](const Input &input) {
 			proc(input.value(), std::forward<Args>(args)...);
 		};
 	};
 }
 
-static auto ToArray = ModCast<Object, Array>(::ofx::convertjson::ToArray);
-static auto PrintFunc = ViewCast<Any>(::ofx::convertjson::Print);
-static auto Print(int indent=-1, std::ostream &os=std::cout) -> decltype(PrintFunc(indent, os)) {
-	return PrintFunc(indent, os);
+static auto ToArray = ModCast<Object, Array>(::ofx::convertjson::conv::ObjToArray);
+
+static auto PrintFunc = ViewCast<Any>(::ofx::convertjson::conv::Print);
+static auto Print(int indent=-1)
+-> decltype(PrintFunc(indent)) {
+	return PrintFunc(indent);
+}
+
+static auto PrintlnFunc = ViewCast<Any>(::ofx::convertjson::conv::Println);
+static auto Println(int indent=-1)
+-> decltype(PrintlnFunc(indent)) {
+	return PrintlnFunc(indent);
+}
+
+static auto Copy = EffectCast<Any>(::ofx::convertjson::conv::Copy);
+
+static auto SaveFunc = ViewCast<Any>(::ofx::convertjson::conv::Save);
+static auto Save(const std::string &filename, int indent=-1)
+-> decltype(SaveFunc(filename, indent)) {
+	return SaveFunc(filename, indent);
+}
+
+
+static auto SaveObjEachFunc = ViewCast<Object>(static_cast<void (*)(const ofJson&, const std::string&, int)>(::ofx::convertjson::conv::SaveObjEach));
+static auto SaveObjEach(const std::string &basename, int indent=-1)
+-> decltype(SaveObjEachFunc(basename, indent)) {
+	return SaveObjEachFunc(basename, indent);
+}
+static auto SaveObjEachWithNamerFunc = ViewCast<Object>(static_cast<void (*)(const ofJson&, conv::ObjNamer, int)>(::ofx::convertjson::conv::SaveObjEach));
+static auto SaveObjEach(conv::ObjNamer namer, int indent=-1)
+-> decltype(SaveObjEachWithNamerFunc(namer, indent)) {
+	return SaveObjEachWithNamerFunc(namer, indent);
+}
+
+static auto SaveArrayEachFunc = ViewCast<Array>(static_cast<void (*)(const ofJson&, const std::string&, int)>(::ofx::convertjson::conv::SaveArrayEach));
+static auto SaveArrayEach(const std::string &basename, int indent=-1)
+-> decltype(SaveArrayEachFunc(basename, indent)) {
+	return SaveArrayEachFunc(basename, indent);
+}
+static auto SaveArrayEachWithNamerFunc = ViewCast<Array>(static_cast<void (*)(const ofJson&, conv::ArrayNamer, int)>(::ofx::convertjson::conv::SaveArrayEach));
+static auto SaveArrayEach(conv::ArrayNamer namer, int indent=-1)
+-> decltype(SaveArrayEachWithNamerFunc(namer, indent)) {
+	return SaveArrayEachWithNamerFunc(namer, indent);
 }
 }
 }}
