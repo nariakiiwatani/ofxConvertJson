@@ -16,10 +16,6 @@ using Modifier = std::function<void(ofJson&)>;
 template<typename Input>
 using Effector = std::function<void(const ofJson&)>;
 
-using ConvFunc = ofx::convertjson::conv::ConvFunc;
-using NoModFunc = ofx::convertjson::conv::NoMod;
-using Picker = ofx::convertjson::conv::Picker;
-
 template<typename T>
 class ValueOrRef
 {
@@ -60,15 +56,13 @@ public:
 	
 	ConcreteType modify(Modifier<ConcreteType> modifier) {
 		modifier(ref());
-		return *this;
+		return static_cast<const ConcreteType&>(*this);
 	}
 	
 	ConcreteType effect(Effector<ConcreteType> effector) const {
  		effector(value());
 		return static_cast<const ConcreteType&>(*this);
 	}
-	
-	Array dispatch(std::initializer_list<ConvFunc> proc) const;
 	
 	template<typename T>
 	T castTo() { return T(ref()); }
@@ -78,59 +72,19 @@ class Value : public Any<Value>
 {
 public:
 	using Any::Any;
-	
-	
 };
 
 class Object : public Any<Object>
 {
 public:
 	using Any::Any;
-	
-	using NamerFunction = std::function<std::string(const std::string &key, const ofJson &value, const ofJson &src)>;
-	
-	template<typename T>
-	Object& pick(T picker_info, ConvFunc proc) {
-		return pick(Picker(picker_info), proc);
-	}
-
-	Object& pick(Picker picker, ConvFunc proc);
 };
 
 class Array : public Any<Array>
 {
 public:
 	using Any::Any;
-	
 	std::size_t size() const { return value().size(); }
-	
-	using NamerFunction = std::function<std::string(std::size_t index, const ofJson &value, const ofJson &src)>;
-	
-	Object toObject(NamerFunction namer) const;
-	Object toObject(const std::string &basename="item_") const {
-		int digit = getDigit();
-		return toObject([basename, digit](std::size_t index, const ofJson&, const ofJson&) {
-			return basename + ofToString(index, digit, '0');
-		});
-	}
-	enum MergeStrategy {
-		KEEP_FIRST,
-		KEEP_LAST,
-	};
-	Object mergeAsObject(MergeStrategy strategy, NamerFunction not_obj_namer) const;
-	Object mergeAsObject(MergeStrategy strategy, const std::string &not_obj_basename="item_") const {
-	   int digit = getDigit();
-	   return mergeAsObject(strategy, [not_obj_basename, digit](std::size_t index, const ofJson&, const ofJson&) {
-		   return not_obj_basename + ofToString(index, digit, '0');
-	   });
-	}
-	
-private:
-	std::size_t getDigit() const {
-		int digit = 0;
-		while(pow(10, ++digit) <= size()) {}
-		return digit;
-	}
 };
 
 }
@@ -161,8 +115,18 @@ static std::function<Effector<Input>(Args...)> EffectCast(void(*proc)(const ofJs
 	};
 }
 
+static auto Dispatch = ConvCast<Json, Array>(::ofx::convertjson::conv::Dispatch);
+static auto CherryPick = ModCast<Object>(::ofx::convertjson::conv::CherryPick);
+
 static auto ToArray = ConvCast<Object, Array>(::ofx::convertjson::conv::ObjToArray);
-static auto ObjForEach = ConvCast<Json, Array>(::ofx::convertjson::conv::ObjForEach);
+
+static auto ObjForEachFunc = ModCast<Object>(::ofx::convertjson::conv::ObjForEach);
+static auto ObjForEach(conv::ObjItemFunc<ofJson> proc, conv::Picker pick=conv::Picker(true))
+-> decltype(ObjForEachFunc(proc, pick)) {
+	return ObjForEachFunc(proc, pick);
+}
+
+static auto ToObj = ConvCast<Array, Object>(::ofx::convertjson::conv::ArrayToObj);
 
 static auto PrintFunc = EffectCast<Json>(::ofx::convertjson::conv::Print);
 static auto Print(int indent=-1)

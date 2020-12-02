@@ -14,14 +14,22 @@ void ofApp::setup(){
 	
 	Value(data)
 	.castTo<Object>()
-	.pick("key2", [](const ofJson &src) {
-		return Array(src).toObject();
-	})
+//	.modify(CherryPick({"key2"}))
+	.modify(ToArray([](const std::string &key, const ofJson &item, const ofJson &src) {
+		return item;
+	}))
+	.effect(Print(2))
 	.effect(Save("obj", 2))
 	.effect(SaveObjEach("obj_", 2))
-	.convert(ToArray("newkey"))
+//	.convert(ToArray("newkey"))
+	.convert(Dispatch(2,
+		[](std::size_t index, const ofJson &src) { return ofJson{{"wrap_"+ofToString(index), src}}; }
+	))
 	.effect(Save("array", 2))
 	.effect(SaveArrayEach("array_", 2))
+	.convert(ToObj([](std::size_t index, const ofJson &item, const ofJson &src) {
+		return make_pair("item_"+ofToString(index), item);
+	}))
 	.effect(Print(2))
 	;
 }

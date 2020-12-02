@@ -8,11 +8,7 @@ namespace conv {
 
 using PickerFunc = std::function<bool(const std::string&)>;
 
-using Mod = std::function<ofJson(const ofJson&)>;
-using NoMod = std::function<void(const ofJson&)>;
-
-using ConvFunc = Mod; // deprecated
-
+using ValueDispatchFunc = std::function<ofJson(std::size_t index, const ofJson &src)>;
 template<typename Ret>
 using ObjItemFunc = std::function<Ret(const std::string &key, const ofJson &item, const ofJson &obj)>;
 template<typename Ret>
@@ -21,9 +17,6 @@ using ArrayItemFunc = std::function<Ret(std::size_t index, const ofJson &item, c
 class Picker
 {
 public:
-	Picker(const std::string &key) {
-		func_ = [key](const std::string &k){return k==key;};
-	}
 	Picker(const std::vector<std::string> &keys) {
 		func_ = [keys](const std::string &key) {
 			using namespace std;
@@ -33,43 +26,39 @@ public:
 	Picker(std::initializer_list<std::string> keys)
 	:Picker(std::vector<std::string>(keys))
 	{}
+	Picker(bool always) {
+		func_ = [always](const std::string&) { return always; };
+	}
+//	use these when I separate this file into .h and .cpp
+//	static const Picker all, none;
 	
 	operator PickerFunc() const { return func_; }
 	bool operator()(const std::string &key) const { return func_(key); }
 private:
 	PickerFunc func_;
-}; 
+};
 
-static Mod CherryPick(Picker pick) {
-	return [pick](const ofJson &src) {
-		assert(src.is_object());
-		using namespace std;
-		ofJson ret;
-		for(auto it = begin(src); it != end(src); ++it) {
-			if(pick(it.key())) {
-				ret[it.key()] = it.value();
-			}
+static void CherryPick(ofJson &srcdst, Picker pick) {
+	using namespace std;
+	ofJson ret;
+	for(auto it = begin(srcdst); it != end(srcdst); ++it) {
+		if(pick(it.key())) {
+			ret[it.key()] = it.value();
 		}
-		return ret;
-	};
+	}
+	srcdst = ret;
+}
+
+static ofJson Dispatch(const ofJson &src, std::size_t count, ValueDispatchFunc func) {
+	ofJson ret;
+	for(std::size_t i = 0; i < count; ++i) {
+		ret.push_back(func(i, src));
+	}
+	return ret;
 }
 
 static ofJson Set(const ofJson &src, const ofJson &new_value) {
 	return new_value;
-}
-
-static ofJson ObjToArray(const ofJson &src, const std::string &name_of_key) {
-	using namespace std;
-	vector<ofJson> ret;
-	ret.reserve(src.size());
-	for(auto it = begin(src); it != end(src); ++it) {
-		ofJson elem = it.value();
-		if(!name_of_key.empty()) {
-			elem[name_of_key] = it.key();
-		}
-		ret.push_back(elem);
-	}
-	return std::move(ret);
 }
 
 static void Print(const ofJson &src, int indent=-1) {
@@ -99,13 +88,21 @@ static void SaveObjEach(const ofJson &src, const std::string &basename="", int i
 		return basename + key;
 	}, indent);
 }
-static ofJson ObjForEach(const ofJson &src, ObjItemFunc<ofJson> proc) {
+static ofJson ObjToArray(const ofJson &src, ObjItemFunc<ofJson> proc) {
 	using namespace std;
 	ofJson ret;
 	for(auto it = begin(src); it != end(src); ++it) {
 		ret.push_back(proc(it.key(), it.value(), src));
 	}
 	return ret;
+}
+static void ObjForEach(ofJson &srcdst, ObjItemFunc<ofJson> proc, Picker pick=Picker(true)) {
+	using namespace std;
+	for(auto it = begin(srcdst); it != end(srcdst); ++it) {
+		if(pick(it.key())) {
+			it.value() = proc(it.key(), it.value(), srcdst);
+		}
+	}
 }
 
 using ArrayNamer = ArrayItemFunc<std::string>;
@@ -127,6 +124,14 @@ static void SaveArrayEach(const ofJson &src, const std::string &basename="", int
 	return SaveArrayEach(src, [digit, basename, indent](std::size_t index, const ofJson&, const ofJson&) {
 		return basename+ofToString(index, digit, indent);
 	}, indent);
+}
+static ofJson ArrayToObj(const ofJson &src, ArrayItemFunc<std::pair<std::string, ofJson>> proc) {
+	ofJson ret;
+	for(size_t i = 0; i < src.size(); ++i) {
+		auto kv = proc(i, src[i], src);
+		ret[kv.first] = kv.second;
+	}
+	return ret;
 }
 }
 }}
