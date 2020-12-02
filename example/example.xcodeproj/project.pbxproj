@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		817E16AA25774B6900CF9A92 /* ofxConvertJson.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 817E16A925774B6900CF9A92 /* ofxConvertJson.cpp */; };
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
 /* End PBXBuildFile section */
@@ -24,8 +25,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2058533CE34B54F1F70A41CF /* convjson.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = convjson.h; path = ../../../addons/ofxConvertJson/libs/convjson/include/convjson.h; sourceTree = SOURCE_ROOT; };
 		57EE395B17A9B235977B356D /* ofxConvertJson.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = ofxConvertJson.h; path = ../../../addons/ofxConvertJson/src/ofxConvertJson.h; sourceTree = SOURCE_ROOT; };
-		813C0E03256DE1FE00483C13 /* ofxConvertJsonHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofxConvertJsonHelper.h; path = ../src/ofxConvertJsonHelper.h; sourceTree = "<group>"; };
+		817E16A925774B6900CF9A92 /* ofxConvertJson.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ofxConvertJson.cpp; path = ../src/ofxConvertJson.cpp; sourceTree = "<group>"; };
 		E42962AC2163EDD300A6A9E2 /* ofCamera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ofCamera.cpp; path = ../../../libs/openFrameworks/3d/ofCamera.cpp; sourceTree = SOURCE_ROOT; };
 		E42962AD2163EDD300A6A9E2 /* ofMesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofMesh.h; path = ../../../libs/openFrameworks/3d/ofMesh.h; sourceTree = SOURCE_ROOT; };
 		E42962AE2163EDD300A6A9E2 /* ofNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ofNode.h; path = ../../../libs/openFrameworks/3d/ofNode.h; sourceTree = SOURCE_ROOT; };
@@ -220,9 +222,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		08FF1DBAAA4FFEC51B203912 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				2058533CE34B54F1F70A41CF /* convjson.h */,
+			);
+			name = include;
+			sourceTree = "<group>";
+		};
 		0A6F6C4C6F45F205E0F36004 /* ofxConvertJson */ = {
 			isa = PBXGroup;
 			children = (
+				E7290D3F17A3621D74131A0D /* libs */,
 				3587C69695DE5EB667D580B6 /* src */,
 			);
 			name = ofxConvertJson;
@@ -231,8 +242,8 @@
 		3587C69695DE5EB667D580B6 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				817E16A925774B6900CF9A92 /* ofxConvertJson.cpp */,
 				57EE395B17A9B235977B356D /* ofxConvertJson.h */,
-				813C0E03256DE1FE00483C13 /* ofxConvertJsonHelper.h */,
 			);
 			name = src;
 			sourceTree = "<group>";
@@ -250,6 +261,14 @@
 				0A6F6C4C6F45F205E0F36004 /* ofxConvertJson */,
 			);
 			name = addons;
+			sourceTree = "<group>";
+		};
+		D9A089287DBA773CEDC7333D /* convjson */ = {
+			isa = PBXGroup;
+			children = (
+				08FF1DBAAA4FFEC51B203912 /* include */,
+			);
+			name = convjson;
 			sourceTree = "<group>";
 		};
 		E42962AA2163EDD300A6A9E2 /* openFrameworks */ = {
@@ -557,6 +576,14 @@
 			path = src;
 			sourceTree = SOURCE_ROOT;
 		};
+		E7290D3F17A3621D74131A0D /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				D9A089287DBA773CEDC7333D /* convjson */,
+			);
+			name = libs;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -655,6 +682,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				817E16AA25774B6900CF9A92 /* ofxConvertJson.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
 			);
@@ -687,6 +715,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(OF_CORE_HEADERS)",
 					src,
+					src,
+					../../../addons/ofxConvertJson/libs,
+					../../../addons/ofxConvertJson/libs/convjson,
+					../../../addons/ofxConvertJson/libs/convjson/include,
 					../../../addons/ofxConvertJson/src,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
@@ -712,6 +744,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(OF_CORE_HEADERS)",
 					src,
+					src,
+					../../../addons/ofxConvertJson/libs,
+					../../../addons/ofxConvertJson/libs/convjson,
+					../../../addons/ofxConvertJson/libs/convjson/include,
 					../../../addons/ofxConvertJson/src,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";
@@ -752,6 +788,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(OF_CORE_HEADERS)",
 					src,
+					src,
+					../../../addons/ofxConvertJson/libs,
+					../../../addons/ofxConvertJson/libs/convjson,
+					../../../addons/ofxConvertJson/libs/convjson/include,
 					../../../addons/ofxConvertJson/src,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
@@ -788,6 +828,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(OF_CORE_HEADERS)",
 					src,
+					src,
+					../../../addons/ofxConvertJson/libs,
+					../../../addons/ofxConvertJson/libs/convjson,
+					../../../addons/ofxConvertJson/libs/convjson/include,
 					../../../addons/ofxConvertJson/src,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
@@ -813,6 +857,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(OF_CORE_HEADERS)",
 					src,
+					src,
+					../../../addons/ofxConvertJson/libs,
+					../../../addons/ofxConvertJson/libs/convjson,
+					../../../addons/ofxConvertJson/libs/convjson/include,
 					../../../addons/ofxConvertJson/src,
 				);
 				ICON = "$(ICON_NAME_DEBUG)";
@@ -842,6 +890,10 @@
 				HEADER_SEARCH_PATHS = (
 					"$(OF_CORE_HEADERS)",
 					src,
+					src,
+					../../../addons/ofxConvertJson/libs,
+					../../../addons/ofxConvertJson/libs/convjson,
+					../../../addons/ofxConvertJson/libs/convjson/include,
 					../../../addons/ofxConvertJson/src,
 				);
 				ICON = "$(ICON_NAME_RELEASE)";

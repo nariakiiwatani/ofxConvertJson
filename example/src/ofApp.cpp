@@ -1,9 +1,8 @@
 #include "ofApp.h"
 #include "ofxConvertJson.h"
-#include "ofxConvertJsonHelper.h"
 
-using namespace ofx::convertjson;
-using namespace ofx::convertjson::helpers;
+using namespace convjson::helpers;
+using namespace std;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -18,19 +17,19 @@ void ofApp::setup(){
 	.modify(ToArray([](const std::string &key, const ofJson &item, const ofJson &src) {
 		return item;
 	}))
-	.effect(Print(2))
-	.effect(Save("obj", 2))
-	.effect(SaveObjEach("obj_", 2))
+	.effect(Print())
+	.effect(Save("obj"))
+	.effect(SaveObjEach("obj_"))
 //	.convert(ToArray("newkey"))
 	.convert(Dispatch(2,
 		[](std::size_t index, const ofJson &src) { return ofJson{{"wrap_"+ofToString(index), src}}; }
 	))
-	.effect(Save("array", 2))
-	.effect(SaveArrayEach("array_", 2))
+	.effect(Save("array"))
+	.effect(SaveArrayEach("array_"))
 	.convert(ToObj([](std::size_t index, const ofJson &item, const ofJson &src) {
 		return make_pair("item_"+ofToString(index), item);
 	}))
-	.effect(Print(2))
+	.effect(Print())
 	;
 }
 
