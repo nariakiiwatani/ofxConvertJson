@@ -1,33 +1,29 @@
 #include "ofApp.h"
-#include "ofxConvertJson.h"
+#include "ofxConvjson.h"
 
 using namespace convjson::helpers;
 using namespace std;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofJson data = {
+	nlohmann::json data = {
 		{"key1", {{"arr1", 1},{"arr2", 2}}},
 		{"key2", {"arr3", 2}},
 	};
 	
 	Value(data)
 	.castTo<Object>()
-//	.modify(CherryPick({"key2"}))
-	.modify(ToArray([](const std::string &key, const ofJson &item, const ofJson &src) {
-		return item;
-	}))
+	.modify(CherryPick({"key2"}))
 	.effect(Print())
 	.effect(Save("obj"))
 	.effect(SaveObjEach("obj_"))
-//	.convert(ToArray("newkey"))
 	.convert(Dispatch(2,
-		[](std::size_t index, const ofJson &src) { return ofJson{{"wrap_"+ofToString(index), src}}; }
+		[](std::size_t index, const nlohmann::json &src) { return nlohmann::json{{"wrap_"+std::to_string(index), src}}; }
 	))
 	.effect(Save("array"))
 	.effect(SaveArrayEach("array_"))
-	.convert(ToObj([](std::size_t index, const ofJson &item, const ofJson &src) {
-		return make_pair("item_"+ofToString(index), item);
+	.convert(ToObj([](std::size_t index, const nlohmann::json &item, const nlohmann::json &src) {
+		return make_pair("item_"+std::to_string(index), item);
 	}))
 	.effect(Print())
 	;
